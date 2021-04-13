@@ -248,6 +248,7 @@ void do_ls(char * name,int options) {
 
 /*
 File modes:
+NONE - "---"(000)
 EXEC - "--x"(001)
 WRIT - "-w-"(010)
 WADX - "-wx"(011)
@@ -256,6 +257,7 @@ RADX - "r-x"(101)
 RADW - "rw-"(110)
 RWAX - "rwx"(111)
 */
+#define NONE    0
 #define EXEC    1
 #define WRIT    2
 #define WADX    3
@@ -269,6 +271,8 @@ RWAX - "rwx"(111)
 static void __explain_mod(int mode,char * str) {
 
     switch(mode) {
+    case NONE:  snprintf(str,4,"%s","---");
+                break;
     case READ:  snprintf(str,4,"%s","r--");
                 break;
     case WRIT:  snprintf(str,4,"%s","-w-");
