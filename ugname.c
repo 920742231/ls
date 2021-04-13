@@ -15,7 +15,7 @@ static char * search_name(int id,int m) {
     
     FILE * fp;
     char * name;
-    char buf[4096];
+    char buf[256];
     char comd[COMDLEM];
 
     switch(m) {
@@ -36,13 +36,13 @@ static char * search_name(int id,int m) {
     name = (char *)malloc(NAMELEN);
     assert(name);
 
-    if(!fgets(buf,4096,fp)) { 
+    if(!fgets(buf,256,fp)) { 
         perror("fgets"); 
         pclose(fp);
         exit(-1);
     }
 
-    for(int i = 0;i < 4096;++i) {
+    for(int i = 0;i < 256;++i) {
         if(buf[i] == ':') {
         name[i] = 0;
         break;
