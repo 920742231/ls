@@ -24,6 +24,7 @@
 #ifndef PUSAGE
 #define PUSAGE printf(\
     "Usage: ls [-l]/[-R]/[-lR]/ <file list>\n")
+#define ERRMSG "[Error] something wrong!\n"
 #endif
 
 void do_ls(char * fname,int options);
@@ -117,7 +118,6 @@ void show_st(char *,struct stat *);
 static void __norm_long(struct stat * st,
     char * fname,int mode) {
     
-    int fd;
     DIR * dir;
     struct stat _st;
     struct dirent * dt;
@@ -141,19 +141,18 @@ static void __norm_long(struct stat * st,
     printf("%s:\n",fname);
 
     while((dt = readdir(dir))) {
+
     if(mode == NORMMODE) 
         printf("%s  ",dt->d_name);
     else if(mode == LONGMODE) {
+
         sprintf(name,"%s/%s",fname,dt->d_name);
-        
-        if((fd = open(name,O_RDONLY)) < 0)
-            err_exit("open",-errno);
-        if(fstat(fd,&_st) < 0) 
-            err_exit("fstat",-errno);
+
+        if(lstat(name,&_st) < 0) 
+            err_exit("lstat",-errno);
         
         show_st(dt->d_name,&_st);
         
-        close(fd);
         }
     }
 
@@ -166,7 +165,6 @@ static void __norm_long(struct stat * st,
 static void __recu_ls(struct stat * st,
     char * fname,int mode) {
 
-    int fd;
     DIR * dir;
     struct stat _st;
     struct dirent * dt;
@@ -186,27 +184,26 @@ static void __recu_ls(struct stat * st,
         err_exit("opendir",-errno);
 
     while((dt = readdir(dir))) {
-        if(strcmp(".",dt->d_name) == 0 \
-        || strcmp("..",dt->d_name) == 0)
+
+        if(strcmp(".",dt->d_name) == 0 || \
+            strcmp("..",dt->d_name) == 0)
             continue;
         
         sprintf(name,"%s/%s",fname,dt->d_name);
         
-        if((fd = open(name,O_RDONLY)) < 0)
-            err_exit("open",-errno);
-        if(fstat(fd,&_st) < 0) 
-            err_exit("fstat",-errno);
+        if(lstat(name,&_st) < 0) 
+            err_exit("lstat",-errno);
+
         /*
          *  Not a directory,don't need showing states.
          */
-        if(!S_ISDIR(_st.st_mode)) goto cont;
+        if(!S_ISDIR(_st.st_mode)) continue;
 
         /*
          *  Else.
          */
         __recu_ls(&_st,name,mode);
-cont:
-        close(fd);
+
     }
 
     closedir(dir);
@@ -219,13 +216,9 @@ cont:
 
 void do_ls(char * name,int options) {
 
-    int fd;
     struct stat st;
 
-    if((fd = open(name,O_RDONLY)) < 0) 
-        err_exit("open",-errno);
-    if(fstat(fd,&st) < 0)
-        err_exit("fstat",-errno);
+    if(lstat(name,&st) < 0) err_exit("lstat",-errno);
 
     /*
      *  Show different kinds of file message by options.
@@ -239,11 +232,10 @@ void do_ls(char * name,int options) {
                         break;
         case LONGRECU:  __long_recu(&st,name);
                         break;
-        default:        printf("[Error] something wrong!\n");
+        default:        printf(ERRMSG);
                         exit(-1);
     }
 
-    close(fd);
 }
 
 /*
@@ -303,6 +295,7 @@ static char * __get_mode_str(int mode) {
     if(S_ISDIR(mode)) mode_str[0] = 'd';
     else if(S_ISCHR(mode)) mode_str[0] = 'c';
     else if(S_ISBLK(mode)) mode_str[0] = 'b';
+    else if(S_ISLNK(mode)) mode_str[0] = 'l';
     else mode_str[0] = '-';
 
     pos = 1;
