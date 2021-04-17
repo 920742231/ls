@@ -14,9 +14,9 @@
 static char * search_name(int id,int m) {
     
     FILE * fp;
-    char * name;
     char buf[256];
     char comd[COMDLEM];
+    static char name[NAMELEN];
 
     switch(m) {
     case 'u':   sprintf(comd,"grep x:%d %s",id,PASSWDF);
@@ -32,9 +32,6 @@ static char * search_name(int id,int m) {
             comd,strerror(errno));
         exit(-errno);
     }
-
-    name = (char *)malloc(NAMELEN);
-    assert(name);
 
     if(!fgets(buf,256,fp)) { 
         perror("fgets"); 

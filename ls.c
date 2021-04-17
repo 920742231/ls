@@ -125,6 +125,8 @@ static void __norm_long(struct stat * st,
 
     /*
      *  Not a directory,show its message.
+     *  print name on normal mode.
+     *  print states on long mode.
      */
     if(!S_ISDIR(st->st_mode)) {
         if(mode == NORMMODE) printf("%s\n",fname);
@@ -134,25 +136,28 @@ static void __norm_long(struct stat * st,
     /*
      *  Else,open this driectory and show its child
      *  files's message.
+     *  message type depends on parameter 'mode'.
      */
     if(!(dir = opendir(fname))) 
         err_exit("opendir",-errno);
 
     printf("%s:\n",fname);
 
+    /*
+     *  Get child files' name by using a loop.
+     *  Show their messages.
+     *  If mode == LONGMODE,call fstat to get file
+     *  states and show_st.
+     *  Else just print file name.
+     */
     while((dt = readdir(dir))) {
-
-    if(mode == NORMMODE) 
-        printf("%s  ",dt->d_name);
-    else if(mode == LONGMODE) {
-
-        sprintf(name,"%s/%s",fname,dt->d_name);
-
-        if(lstat(name,&_st) < 0) 
-            err_exit("lstat",-errno);
-        
-        show_st(dt->d_name,&_st);
-        
+        if(mode == NORMMODE) 
+            printf("%s  ",dt->d_name);
+        else if(mode == LONGMODE) {
+            sprintf(name,"%s/%s",fname,dt->d_name);
+            if(lstat(name,&_st) < 0) 
+                err_exit("lstat",-errno);
+            show_st(dt->d_name,&_st);
         }
     }
 
@@ -184,7 +189,11 @@ static void __recu_ls(struct stat * st,
         err_exit("opendir",-errno);
 
     while((dt = readdir(dir))) {
-
+        /*
+         *  Delete current directory(.) and parent
+         *  directory(..) from recursion.
+         *  Otherwise the recursion will not stop.
+         */
         if(strcmp(".",dt->d_name) == 0 || \
             strcmp("..",dt->d_name) == 0)
             continue;
@@ -195,12 +204,12 @@ static void __recu_ls(struct stat * st,
             err_exit("lstat",-errno);
 
         /*
-         *  Not a directory,don't need showing states.
+         *  Not a directory,stop this recursion.
          */
         if(!S_ISDIR(_st.st_mode)) continue;
 
         /*
-         *  Else.
+         *  Else,do recursoin.
          */
         __recu_ls(&_st,name,mode);
 
@@ -222,6 +231,10 @@ void do_ls(char * name,int options) {
 
     /*
      *  Show different kinds of file message by options.
+     *  NORMMODE : ls
+     *  LONGMODE : ls -l
+     *  RECUMODE : ls -R
+     *  LONGRECU : ls -lR
      */
     switch(options) {
         case NORMMODE:  __norm_ls(&st,name);
@@ -315,7 +328,9 @@ static char * __get_mode_str(int mode) {
     return mode_str;
 }
 
+//Get user name by uid.
 extern char * getuname(int);
+//Get group name by gid .
 extern char * getgname(int);
 
 /*
@@ -327,25 +342,29 @@ extern char * getgname(int);
 
 static void __show_st(char * fname,struct stat * st) {
     
-    char * mode_str;
-    char * time_str;
-    char * usr_name;
-    char * grp_name;
+    char * mode_str,* time_str,* usr_name,* grp_name;
 
-    mode_str = __get_mode_str(st->st_mode); //mode string
+    /*
+     *  Turn file mode into a string("-rwx------")
+     */
+    mode_str = __get_mode_str(st->st_mode);
 
-    time_str = ctime(&st->st_mtim.tv_sec);  //time string
-    time_str[strlen(time_str) - 1] = 0;     //delete '/n'
+    /*
+     *  The lastest time when file was modified.
+     */
+    time_str = ctime(&st->st_mtim.tv_sec); 
+    time_str[strlen(time_str) - 1] = 0;
 
-    usr_name = getuname(st->st_uid);        //user name
-    grp_name = getgname(st->st_gid);        //group name
+    /*
+     *  User name and group name.
+     */
+    usr_name = getuname(st->st_uid);
+    grp_name = getgname(st->st_gid);
 
     __SHOW_ST(mode_str,st->st_nlink,usr_name,grp_name,
         st->st_size,time_str,fname);
     
     free(mode_str);
-    free(usr_name);
-    free(grp_name);
 }
 
 void show_st(char * fname,struct stat * st) {
