@@ -94,7 +94,7 @@ int main(int argc,char ** argv) {
 }
 
 /*
-Options fo ls.
+Options of ls.
 LONGMODE : ls -l
 NORMMODE : ls
 RECUMODE : ls -R
