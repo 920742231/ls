@@ -18,14 +18,12 @@
     assert(value);}
 #endif
 
-#define LONG_MOD(mode) (mode |= 0x02)
-#define RECU_MOD(mode) (mode |= 0x04)
-
-#ifndef PUSAGE
 #define PUSAGE printf(\
     "Usage: ls [-l]/[-R]/[-lR]/ <file list>\n")
 #define ERRMSG "[Error] something wrong!\n"
-#endif
+
+#define LONG_MOD(mode) (mode |= 0x02)
+#define RECU_MOD(mode) (mode |= 0x04)
 
 void do_ls(char * fname,int options);
 
@@ -34,31 +32,31 @@ int main(int argc,char ** argv) {
     int mode;
     char opt;
     char ** args;
-    
+
     /*
-     *  Set mode 0001 as not options,print file 
+     *  Set mode 0001 as not options,print file
      *  state on simple mode(just file name).
      */
     mode = 1;
     /*  -------------------------------------------
      *  Explain commamd options by user parameters.
      *  And add options to value 'mode' to record.
-     *  
+     *
      *  LONG_MODE----------------------------------
      *  '-l' in options,means print file message on
      *  long mode(use file states in struct stat).
      *  Set mode |= 0010 as long mode.
-     *  
+     *
      *  RECU_MODE----------------------------------
      *  '-R' in options,means print file message on
-     *  recu mode(Recuersivly prirnt the direntory 
+     *  recu mode(Recuersivly prirnt the direntory
      *  tree).
      *  Set mode |= 0100 as recu mode.
-     *  
+     *
      *  PUSAGE-------------------------------------
      *  Wrong optons,show tips to user.
-     * 
-     *  And option '-l' and '-R' are legal to use 
+     *
+     *  And option '-l' and '-R' are legal to use
      *  together.
      */
     while((opt = getopt(argc,argv,"lR")) \
@@ -67,7 +65,7 @@ int main(int argc,char ** argv) {
         case 'l':   LONG_MOD(mode);
                     break;
         case 'R':   RECU_MOD(mode);
-                    break;  
+                    break;
         default:    PUSAGE;
                     exit(0);
         }
@@ -117,7 +115,7 @@ void show_st(char *,struct stat *);
  */
 static void __norm_long(struct stat * st,
     char * fname,int mode) {
-    
+
     DIR * dir;
     struct stat _st;
     struct dirent * dt;
@@ -138,7 +136,7 @@ static void __norm_long(struct stat * st,
      *  files's message.
      *  message type depends on parameter 'mode'.
      */
-    if(!(dir = opendir(fname))) 
+    if(!(dir = opendir(fname)))
         err_exit("opendir",-errno);
 
     printf("%s:\n",fname);
@@ -151,11 +149,11 @@ static void __norm_long(struct stat * st,
      *  Else just print file name.
      */
     while((dt = readdir(dir))) {
-        if(mode == NORMMODE) 
+        if(mode == NORMMODE)
             printf("%s  ",dt->d_name);
         else if(mode == LONGMODE) {
             sprintf(name,"%s/%s",fname,dt->d_name);
-            if(lstat(name,&_st) < 0) 
+            if(lstat(name,&_st) < 0)
                 err_exit("lstat",-errno);
             show_st(dt->d_name,&_st);
         }
@@ -163,7 +161,7 @@ static void __norm_long(struct stat * st,
 
     if(mode == NORMMODE) printf("\n");
 
-    closedir(dir);  
+    closedir(dir);
 }
 
 
@@ -179,9 +177,9 @@ static void __recu_ls(struct stat * st,
      *  Show current file's message.
      */
     __norm_long(st,fname,mode - 4);
-    
+
     if(!S_ISDIR(st->st_mode)) return;
-    
+
     /*
      *  Show child directories message recursivly.
      */
@@ -197,10 +195,10 @@ static void __recu_ls(struct stat * st,
         if(strcmp(".",dt->d_name) == 0 || \
             strcmp("..",dt->d_name) == 0)
             continue;
-        
+
         sprintf(name,"%s/%s",fname,dt->d_name);
-        
-        if(lstat(name,&_st) < 0) 
+
+        if(lstat(name,&_st) < 0)
             err_exit("lstat",-errno);
 
         /*
@@ -298,7 +296,7 @@ static void __explain_mod(int mode,char * str) {
 static char * __get_mode_str(int mode) {
     int pos;
     char * mode_str;
-    
+
     MALLOC(mode_str,char *,12);
 
     /*
@@ -312,7 +310,7 @@ static char * __get_mode_str(int mode) {
     else mode_str[0] = '-';
 
     pos = 1;
-    
+
     /*
      *  Get file mode.
      */
@@ -341,7 +339,7 @@ extern char * getgname(int);
     mode,nlink,u,g,len,mtim,name)
 
 static void __show_st(char * fname,struct stat * st) {
-    
+
     char * mode_str,* time_str,* usr_name,* grp_name;
 
     /*
@@ -352,7 +350,7 @@ static void __show_st(char * fname,struct stat * st) {
     /*
      *  The lastest time when file was modified.
      */
-    time_str = ctime(&st->st_mtim.tv_sec); 
+    time_str = ctime(&st->st_mtim.tv_sec);
     time_str[strlen(time_str) - 1] = 0;
 
     /*
@@ -363,7 +361,7 @@ static void __show_st(char * fname,struct stat * st) {
 
     __SHOW_ST(mode_str,st->st_nlink,usr_name,grp_name,
         st->st_size,time_str,fname);
-    
+
     free(mode_str);
 }
 
