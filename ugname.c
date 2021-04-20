@@ -47,6 +47,8 @@ static char * search_name(int id,int m) {
         name[i] = buf[i];
     }
 
+    name[NAMELEN - 1] = 0;
+    
     pclose(fp);
 
     return name;

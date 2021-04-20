@@ -342,12 +342,12 @@ static void __show_st(char * fname,struct stat * st) {
     char * mode_str,* time_str,* usr_name,* grp_name;
 
     /*
-     *  Turn file mode into a string("-rwx------")
+     *  Turn file mode into a string like "-rwx------"
      */
     mode_str = __get_mode_str(st->st_mode);
 
     /*
-     *  The lastest time when file was modified.
+     *  The last time when file was modified.
      */
     time_str = ctime(&st->st_mtim.tv_sec);
     time_str[strlen(time_str) - 1] = 0;
