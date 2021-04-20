@@ -34,7 +34,7 @@ int main(int argc,char ** argv) {
     char ** args;
 
     /*
-     *  Set mode 0001 as not options,print file
+     *  Set mode 0001 as no options,print file
      *  state on simple mode(just file name).
      */
     mode = 1;
@@ -163,7 +163,6 @@ static void __norm_long(struct stat * st,
 
     closedir(dir);
 }
-
 
 static void __recu_ls(struct stat * st,
     char * fname,int mode) {
