@@ -18,6 +18,12 @@ static char * search_name(int id,int m) {
     char comd[COMDLEM];
     static char name[NAMELEN];
 
+    /*
+     *  case u:serach username via uid.execuate commamd
+     *         "grep x:[uid] /etc/passwd" to get uname.
+     *  case g:serach group name via gid,execuate command
+     *         "grep [gid] /etc/group" to get group name.
+     */
     switch(m) {
     case 'u':   sprintf(comd,"grep x:%d %s",id,PASSWDF);
                 break;
@@ -27,18 +33,27 @@ static char * search_name(int id,int m) {
                 exit(-1);
     }
 
+    /*
+     *  popen command to read result of searching.
+     */
     if((fp = popen(comd,"r")) == NULL) {
         fprintf(stderr,"Con't popen command [%s]: %s",
             comd,strerror(errno));
         exit(-errno);
     }
 
+    /*
+     *  get result.
+     */
     if(!fgets(buf,256,fp)) {
         perror("fgets");
         pclose(fp);
         exit(-1);
     }
 
+    /*
+     *  matching name from result.
+     */
     for(int i = 0;i < NAMELEN;++i) {
         if(buf[i] == ':') {
         name[i] = 0;
@@ -47,8 +62,11 @@ static char * search_name(int id,int m) {
         name[i] = buf[i];
     }
 
+    /*
+     *  avoid bounder fault.
+     */
     name[NAMELEN - 1] = 0;
-    
+
     pclose(fp);
 
     return name;
