@@ -19,11 +19,18 @@
 #endif
 
 #define PUSAGE printf(\
-    "Usage: ls [-l]/[-R]/[-lR]/ <file list>\n")
+"Usage: ls [-l]/[-R]/[-lR]/ <file list>\n")
 #define ERRMSG "[Error] something wrong!\n"
 
 #define LONG_MOD(mode) (mode |= 0x02)
 #define RECU_MOD(mode) (mode |= 0x04)
+
+#ifdef NOHIDDEN
+#define __not_hidden__(dt) \
+    if(dt->d_name[0] == '.') continue;
+#else
+#define __not_hidden__(dt)
+#endif
 
 void do_ls(char * fname,int options);
 
@@ -149,6 +156,7 @@ static void __norm_long(struct stat * st,
      *  Else just print file name.
      */
     while((dt = readdir(dir))) {
+        __not_hidden__(dt)
         if(mode == NORMMODE)
             printf("%s  ",dt->d_name);
         else if(mode == LONGMODE) {
@@ -177,6 +185,8 @@ static void __recu_ls(struct stat * st,
      */
     __norm_long(st,fname,mode - 4);
 
+    printf("\n\r");
+
     if(!S_ISDIR(st->st_mode)) return;
 
     /*
@@ -186,6 +196,8 @@ static void __recu_ls(struct stat * st,
         err_exit("opendir",-errno);
 
     while((dt = readdir(dir))) {
+
+        __not_hidden__(dt)
         /*
          *  Delete current directory(.) and parent
          *  directory(..) from recursion.
